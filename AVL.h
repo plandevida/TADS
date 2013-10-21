@@ -293,10 +293,15 @@ private:
     }
     
     void mostrar(ostream& o,int indent, Nodo* r) const {
-        if(r!=NULL){
-            mostrar(o,indent+2,r->dr);
-            for(int i=0;i<indent;i++) o << " ";
-            o << "(" << r->clave << "," << r-> valor << ")" << "  tam_i = " << r->tam_i << endl;
+        
+        if(r!=NULL) {
+            
+            mostrar(o, indent+2, r->dr);
+            
+            for(int i=0; i<indent; i++) o << " ";
+            
+            o << "(" << r->clave << "," << r-> valor << ")" << " --> tam_i = " << r->tam_i << endl;
+            
             mostrar(o,indent+2,r->iz);
         }
     }

@@ -8,6 +8,7 @@ int max(int a,int b){if(a>=b)return a;else return b;}
 #include <iostream>
 #include <fstream>
 #include <cassert>
+#include "Lista.h"
 
 using namespace std;
 
@@ -43,10 +44,9 @@ public:
     };
     
     void inserta(const Clave &c, const Valor &v) {
-        inserta(c, v, raiz);
+        bool sobreescritura = false;
         
-        mostrar(cout, 0);
-        cout << endl;
+        inserta(c, v, raiz, sobreescritura);
         
         assert( esAVLcorrecto(raiz) );
     }
@@ -68,6 +68,7 @@ public:
     
     void mostrar(ostream& o, int indent) const {
         mostrar(o,indent,raiz);
+        cout << endl;
     }
     
     
@@ -118,6 +119,12 @@ public:
         return equi;
     }
     
+    /**
+     *
+     * Operación que determina si el árbol es quilibrado
+     * y si el atrubuto altura de cada uno de los nodos
+     * está correctamente calculado.
+     */
     bool esAVLcorrecto(Nodo* nodo) {
         
         bool equi = false;
@@ -126,6 +133,35 @@ public:
         AVLcorrecto(nodo, altura, equi);
         
         return equi;
+    }
+    
+    const Valor kesimoelementominimo(const int kesimo) {
+        
+        return (kesimoelementominimo(raiz, kesimo))->valor;
+    }
+    
+    Lista<Clave> rango(const Clave& k1, const Clave& k2) const {
+        
+        Lista<Clave> clavesRango;
+        Clave inicio = k1;
+        Clave fin = k2;
+        
+        if ( k1 > k2 ) {
+            Clave aux = inicio;
+            inicio = fin;
+            fin = aux;
+        }
+        
+        assert( k1 < k2 );
+        
+        if ( k1 < raiz->clave && k2 < raiz->clave )
+            rango(raiz->iz, k1, k2, clavesRango);
+        else if ( k1 < raiz->clave && k2 > raiz->clave )
+            rango(raiz, k1, k2, clavesRango);
+        else if ( k1 > raiz->clave && k2 > raiz->clave )
+            rango(raiz->dr, k1, k2, clavesRango);
+        
+        return clavesRango;
     }
     
     void borrar(const Clave& c) {
@@ -221,17 +257,20 @@ private:
         else return a->altura;
     }
     
-    static void inserta(const Clave& c, const Valor& v, Nodo*& a){
+    static void inserta(const Clave& c, const Valor& v, Nodo*& a, bool& sobreescritura){
         if (a == NULL) {
             a = new Nodo(c,v);
         } else if (c == a->clave) {
             a->valor = v;
+            sobreescritura = true;
         } else if (c < a->clave) {
-            inserta(c, v, a->iz);
-            a->tam_i++;
+            inserta(c, v, a->iz, sobreescritura);
+            if ( !sobreescritura ) {
+                a->tam_i++;
+            }
             reequilibraDer(a);
         } else { // c > a->clave
-            inserta(c, v, a->dr);
+            inserta(c, v, a->dr, sobreescritura);
             reequilibraIzq(a);
         }
     }
@@ -307,7 +346,7 @@ private:
     }
     
     
-    bool equilibrado(Nodo* n, int& altura, bool& equi) {
+    static bool equilibrado(Nodo* n, int& altura, bool& equi) {
         
         int alturaIz, alturaDr;
         alturaIz = alturaDr = altura;
@@ -341,14 +380,13 @@ private:
     }
     
     
-    bool AVLcorrecto(Nodo* n, int& altura, bool& equi) {
+    static bool AVLcorrecto(Nodo* n, int& altura, bool& equi) {
         
         int alturaIz, alturaDr, alturacopy;
         alturaIz = alturaDr = alturacopy = altura;
         
         if ( n == NULL ) {
             
-            //altura = 0;
             return false;
         }
         else {
@@ -380,6 +418,46 @@ private:
         return true;
     }
     
+    static Nodo* kesimoelementominimo(Nodo* n, const int kesimo) {
+        
+        Nodo* vn;
+        
+        if ( n == NULL ) {
+            vn = NULL;
+        }
+        else {
+            
+            if ( kesimo == n->tam_i ) {
+                vn = n;
+            }
+            else {
+                if ( n->tam_i > kesimo ) {
+                    vn = kesimoelementominimo(n->iz, kesimo);
+                }
+                else {// n->tam_i < kesimo
+                    vn = kesimoelementominimo(n->dr, kesimo-n->tam_i);
+                }
+            }
+        }
+        
+        return vn;
+    }
+    
+    static void rango(Nodo* n, const Clave& k1, const Clave& k2, Lista<Clave>& claves) {
+        
+        if ( n != NULL ) {
+            
+            rango(n->iz, k1, k2, claves);
+            
+            if ( n->clave <= k2) {
+                claves.ponDr(n->clave);
+            }
+            
+            if ( n->clave < k2 ) {
+                rango(n->dr, k1, k2, claves);
+            }
+        }
+    }
 };
 
 template <class Clave, class Valor>

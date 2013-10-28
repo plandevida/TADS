@@ -67,7 +67,12 @@ public:
     }
     
     void mostrar(ostream& o, int indent) const {
-        mostrar(o,indent,raiz);
+        mostrar(o,indent,raiz, false);
+        cout << endl;
+    }
+    
+    void mostrar(ostream& o, int indent, bool debug) {
+        mostrar(o, indent, raiz, debug);
         cout << endl;
     }
     
@@ -156,7 +161,7 @@ public:
         
         if ( k1 < raiz->clave && k2 < raiz->clave )
             rango(raiz->iz, k1, k2, clavesRango);
-        else if ( k1 < raiz->clave && k2 > raiz->clave )
+        else if ( k1 <= raiz->clave && k2 >= raiz->clave )
             rango(raiz, k1, k2, clavesRango);
         else if ( k1 > raiz->clave && k2 > raiz->clave )
             rango(raiz->dr, k1, k2, clavesRango);
@@ -164,42 +169,113 @@ public:
         return clavesRango;
     }
     
-    void borrar(const Clave& c) {
-        
-        if ( esta(c) ) {
-            
-            borraAux(raiz, c);
-        }
-    }
+	/**
+	 Operación que borra un elemento del árbol
+	 */
+	void borra(const Clave &clave) {
+		raiz = borraAux(raiz, clave);
+	}
     
-    bool borraAux(Nodo* n, Clave c) {
+    Nodo* borraAux(Nodo* p, const Clave &clave) {
         
-        bool equi = false;
+		if (p == NULL)
+			return NULL;
         
-        if (n == NULL) {
-            equi = false;
-        } else if (c == n->clave) {
+		if (clave == p->clave) {
+			return borraRaiz(p);
+		} else if (clave < p->clave) {
+			p->iz = borraAux(p->iz, clave);
+			return p;
+		} else { // clave > p->_clave
+			p->dr = borraAux(p->dr, clave);
+			return p;
+		}
+	}
+    
+    Nodo* borraRaiz(Nodo *p) {
+        
+		Nodo* aux;
+        
+		// Si no hay hijo izquierdo, la raíz pasa a ser
+		// el hijo derecho
+		if (p->iz == NULL) {
+			aux = p->dr;
+			delete p;
+		} else
+            // Si no hay hijo derecho, la raíz pasa a ser
+            // el hijo izquierdo
+            if (p->dr == NULL) {
+                aux = p->iz;
+                delete p;
+            } else {
+                // Convertimos el elemento más pequeño del hijo derecho
+                // en la raíz.
+                aux = mueveMinYBorra(p);
+                reequilibraIzq(aux);
+            }
+        
+        return aux;
+	}
+    
+    Nodo* mueveMinYBorra(Nodo *p) {
+    
+		// Vamos bajando hasta que encontramos el elemento
+		// más pequeÒo (aquel que no tiene hijo izquierdo).
+		// Vamos guardando también el padre (que será null
+		// si el hijo derecho es directamente el elemento
+		// más pequeño).
+		Nodo* padre = NULL;
+		Nodo* aux = p->dr;
+		while (aux->iz != NULL) {
+			padre = aux;
+			aux = aux->iz;
+		}
+        
+		// aux apunta al elemento más pequeño.
+		// padre apunta a su padre (si el nodo es hijo izquierdo)
+        
+		// Dos casos dependiendo de si el padre del nodo con
+		// el mínimo es o no la raÌz a eliminar
+		// (=> padre != NULL)
+		if (padre != NULL) {
             
-            if ( esVAcio(n->iz) && esVAcio(n->dr) ) {
-                delete n;
-            }
-            else if ( !esVAcio(n->iz) && esVAcio(n->dr) ) {
-                
-                
-            }
-            else if ( esVAcio(n->iz) && !esVAcio(n->dr) ) {
-                
-                
-            }
+			padre->iz = aux->dr;
             
-        } else if (c < n->clave) {
-            borraAux2(n->iz, c);
-        } else { // c > a->clave
-            borraAux2(n->dr, c);
+            // Actualiza el número de hijos izquierdos del padre
+            // del nodo que sube.
+            padre->tam_i = aux->tam_i;
+            padre->altura = max(altura(padre->iz),altura(padre->dr))+1;
+            
+			aux->iz = p->iz;
+            
+            // Actualiza el número de hijos izquierdos del nodo
+            // que sube.
+            aux->tam_i = p->tam_i;
+            
+			aux->dr = p->dr;
+            
+            aux->altura = max(altura(aux->iz),altura(aux->dr))+1;
+            
+		} else {
+            
+			aux->iz = p->iz;
+            
+            // Actualiza el número de hijos izquierdos del nodo
+            // que sube
+            aux->tam_i = p->tam_i;
+            aux->altura = max(altura(aux->iz),altura(aux->dr))+1;
+		}
+        
+        Nodo* padreBorrado = obtenerPadre(p->clave);
+        
+        if ( p->clave != padreBorrado->clave ) {
+        
+            padreBorrado->tam_i--;
         }
-        
-        return equi;
-    }
+    
+		delete p;
+		return aux;
+	}
     
 protected:
     
@@ -331,17 +407,23 @@ private:
         else a->altura = max(altura(a->iz),altura(a->dr))+1;
     }
     
-    void mostrar(ostream& o,int indent, Nodo* r) const {
+    void mostrar(ostream& o,int indent, Nodo* r, bool debug) const {
         
         if(r!=NULL) {
             
-            mostrar(o, indent+2, r->dr);
+            mostrar(o, indent+2, r->dr, debug);
             
             for(int i=0; i<indent; i++) o << " ";
             
-            o << "(" << r->clave << "," << r-> valor << ")" << " --> tam_i = " << r->tam_i << endl;
+            o << "(" << r->clave << "," << r-> valor << ")";
             
-            mostrar(o,indent+2,r->iz);
+            if (debug) {
+                o << " tam_i = " << r->tam_i << " altura = " << r->altura;
+            }
+            
+            o << endl;
+            
+            mostrar(o,indent+2,r->iz, debug);
         }
     }
     
@@ -457,6 +539,41 @@ private:
                 rango(n->dr, k1, k2, claves);
             }
         }
+    }
+    
+    Nodo* obtenerPadre(const Clave& clave) {
+        
+        bool e = false;
+        Nodo* padre = raiz;
+        
+        return obtenerPadre(raiz, padre, padre, clave, e);
+    }
+    
+    static Nodo* obtenerPadre(Nodo* n, Nodo*& padre, Nodo*& previo, const Clave& clave, bool& encontrado) {
+        if ( !encontrado ) {
+            
+            if ( n == NULL ) padre = NULL;
+            else {
+                
+                if ( clave == n->clave ) {
+                    encontrado = true;
+                }
+                else {
+                    Nodo* padre_aux = n;
+//                    previo = (padre_aux != NULL) ? padre_aux : previo;
+                    padre = obtenerPadre(n->iz, padre_aux, previo, clave, encontrado);
+                    padre = obtenerPadre(n->dr, padre_aux, previo, clave, encontrado);
+                    
+                    previo = n;
+                    
+                    if ( padre == NULL && encontrado ) {
+                        padre = previo;
+                    }
+                }
+            }
+        }
+        
+        return padre;
     }
 };
 

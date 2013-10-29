@@ -172,24 +172,38 @@ public:
 	/**
 	 Operación que borra un elemento del árbol
 	 */
-	void borra(const Clave &clave) {
-		raiz = borraAux(raiz, clave);
+	void borra(const Clave& clave) {
+		raiz = borraAux(raiz, clave, 0);
 	}
     
-    Nodo* borraAux(Nodo* p, const Clave &clave) {
+    Nodo* borraAux(Nodo* p, const Clave &clave, int nivel) {
         
 		if (p == NULL)
 			return NULL;
         
 		if (clave == p->clave) {
-			return borraRaiz(p);
+            p = borraRaiz(p);
+            
+            if ( nivel == 0 ) {
+                reequilibraIzq(p->dr);
+            }
+            else {
+                reequilibraIzq(p);
+            }
+            
 		} else if (clave < p->clave) {
-			p->iz = borraAux(p->iz, clave);
-			return p;
+			p->iz = borraAux(p->iz, clave, nivel+1);
+            p->tam_i--;
+            
+            reequilibraIzq(p->iz);
 		} else { // clave > p->_clave
-			p->dr = borraAux(p->dr, clave);
-			return p;
+			p->dr = borraAux(p->dr, clave, nivel+1);
+            p->tam_i--;
+            
+            reequilibraDer(p->dr);
 		}
+        
+        return p;
 	}
     
     Nodo* borraRaiz(Nodo *p) {
@@ -211,7 +225,6 @@ public:
                 // Convertimos el elemento más pequeño del hijo derecho
                 // en la raíz.
                 aux = mueveMinYBorra(p);
-                reequilibraIzq(aux);
             }
         
         return aux;
@@ -242,18 +255,17 @@ public:
 			padre->iz = aux->dr;
             
             // Actualiza el número de hijos izquierdos del padre
-            // del nodo que sube.
+            // del nodo que sube y su altura.
             padre->tam_i = aux->tam_i;
             padre->altura = max(altura(padre->iz),altura(padre->dr))+1;
             
 			aux->iz = p->iz;
             
-            // Actualiza el número de hijos izquierdos del nodo
-            // que sube.
-            aux->tam_i = p->tam_i;
-            
 			aux->dr = p->dr;
             
+            // Actualiza el número de hijos izquierdos del nodo
+            // que sube y su altura.
+            aux->tam_i = p->tam_i;
             aux->altura = max(altura(aux->iz),altura(aux->dr))+1;
             
 		} else {
@@ -261,17 +273,10 @@ public:
 			aux->iz = p->iz;
             
             // Actualiza el número de hijos izquierdos del nodo
-            // que sube
+            // que sube y su altura.
             aux->tam_i = p->tam_i;
             aux->altura = max(altura(aux->iz),altura(aux->dr))+1;
 		}
-        
-        Nodo* padreBorrado = obtenerPadre(p->clave);
-        
-        if ( p->clave != padreBorrado->clave ) {
-        
-            padreBorrado->tam_i--;
-        }
     
 		delete p;
 		return aux;
@@ -539,41 +544,6 @@ private:
                 rango(n->dr, k1, k2, claves);
             }
         }
-    }
-    
-    Nodo* obtenerPadre(const Clave& clave) {
-        
-        bool e = false;
-        Nodo* padre = raiz;
-        
-        return obtenerPadre(raiz, padre, padre, clave, e);
-    }
-    
-    static Nodo* obtenerPadre(Nodo* n, Nodo*& padre, Nodo*& previo, const Clave& clave, bool& encontrado) {
-        if ( !encontrado ) {
-            
-            if ( n == NULL ) padre = NULL;
-            else {
-                
-                if ( clave == n->clave ) {
-                    encontrado = true;
-                }
-                else {
-                    Nodo* padre_aux = n;
-//                    previo = (padre_aux != NULL) ? padre_aux : previo;
-                    padre = obtenerPadre(n->iz, padre_aux, previo, clave, encontrado);
-                    padre = obtenerPadre(n->dr, padre_aux, previo, clave, encontrado);
-                    
-                    previo = n;
-                    
-                    if ( padre == NULL && encontrado ) {
-                        padre = previo;
-                    }
-                }
-            }
-        }
-        
-        return padre;
     }
 };
 

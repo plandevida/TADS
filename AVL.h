@@ -188,19 +188,19 @@ public:
                 reequilibraIzq(p->dr);
             }
             else {
-                reequilibraIzq(p);
+                reequilibraDer(p);
             }
             
 		} else if (clave < p->clave) {
 			p->iz = borraAux(p->iz, clave, nivel+1);
             p->tam_i--;
             
-            reequilibraIzq(p->iz);
+            reequilibraIzq(p);
 		} else { // clave > p->_clave
 			p->dr = borraAux(p->dr, clave, nivel+1);
             p->tam_i--;
             
-            reequilibraDer(p->dr);
+            reequilibraDer(p);
 		}
         
         return p;

@@ -100,12 +100,9 @@ public:
      */
     bool equilibrado() {
         
-        int altura = 0;
-        bool eq = true;
+        int altura;
         
-        equilibrado(raiz, altura, eq);
-        
-        return eq;
+        return equilibrado(raiz, altura);
     }
     
     /**
@@ -115,29 +112,9 @@ public:
      * está correctamente calculado.
      */
     bool esAVLcorrecto() {
+        int altura;
         
-        bool equi = false;
-        int altura = 1;
-        
-        AVLcorrecto(raiz, altura, equi);
-        
-        return equi;
-    }
-    
-    /**
-     *
-     * Operación que determina si el árbol es quilibrado
-     * y si el atrubuto altura de cada uno de los nodos
-     * está correctamente calculado.
-     */
-    bool esAVLcorrecto(Nodo* nodo) {
-        
-        bool equi = false;
-        int altura = 1;
-        
-        AVLcorrecto(nodo, altura, equi);
-        
-        return equi;
+        return AVLcorrecto(raiz, altura);
     }
     
     const Clave kesimoelementominimo(const int kesimo) {
@@ -183,12 +160,12 @@ public:
 		if (clave == p->clave) {
             p = borraRaiz(p);
             
-            if ( nivel == 0 ) {
-                reequilibraIzq(p->dr);
-            }
-            else {
-                reequilibraDer(p);
-            }
+//            if ( nivel == 0 ) {
+//                reequilibraIzq(p->dr);
+//            }
+//            else {
+//                reequilibraDer(p);
+//            }
             
 		} else if (clave < p->clave) {
 			p->iz = borraAux(p->iz, clave, nivel+1);
@@ -431,78 +408,102 @@ private:
         }
     }
     
-    
-    static bool equilibrado(Nodo* n, int& altura, bool& equi) {
+    static bool equilibrado(Nodo* n, int& altura) {
         
-        int alturaIz, alturaDr;
-        alturaIz = alturaDr = altura;
+        bool equi;
         
         if ( n == NULL ) {
-            
             altura = 0;
-            return false;
+            equi = true;
         }
         else {
             
-            bool resI = equilibrado(n->iz, alturaIz, equi);
+            int alturaIz, alturaDr;
             
-            bool resD = equilibrado(n->dr, alturaDr, equi);
+            bool equiI = equilibrado(n->iz, alturaIz);
+            bool equiD = equilibrado(n->dr, alturaDr);
             
-            if ( resI ) {
-                alturaIz++;
-            }
-            if ( resD ) {
-                alturaDr++;
-            }
+            altura = max(alturaIz, alturaDr);
             
-            if ( altura < alturaIz ) altura = alturaIz;
-            else if ( altura < alturaDr ) altura = alturaDr;
-            
-            if ( abs(alturaIz - alturaDr)  > 1 ) equi = false;
-            else equi = true;
+            equi = equiI && equiD && (abs(alturaIz - alturaDr) <= 1);
         }
         
-        return true;
+        return equi;
     }
     
-    
-    static bool AVLcorrecto(Nodo* n, int& altura, bool& equi) {
+    /**
+     *
+     * Operación que determina si el árbol es quilibrado
+     * y si el atrubuto altura de cada uno de los nodos
+     * está correctamente calculado.
+     */
+    static bool esAVLcorrecto(Nodo* nodo) {
+        int altura;
         
-        int alturaIz, alturaDr, alturacopy;
-        alturaIz = alturaDr = alturacopy = altura;
+        return AVLcorrecto(nodo, altura);
+    }
+    
+    static bool AVLcorrecto(Nodo* n, int& altura) {
+        
+        bool equi;
         
         if ( n == NULL ) {
-            
-            return false;
+            altura = 0;
+            equi = true;
         }
         else {
             
-            bool resI = AVLcorrecto(n->iz, alturaIz, equi);
+            int alturaIz, alturaDr;
             
-            bool resD = AVLcorrecto(n->dr, alturaDr, equi);
+            bool equiI = AVLcorrecto(n->iz, alturaIz);
+            bool equiD = AVLcorrecto(n->dr, alturaDr);
             
-            if ( resI ) {
-                alturaIz++;
-            }
-            if ( resD ) {
-                alturaDr++;
-            }
+            altura = max(alturaIz, alturaDr);
             
-            if ( alturacopy < alturaIz ) altura = alturacopy = alturaIz;
-            if ( alturacopy < alturaDr ) altura = alturacopy = alturaDr;
-            
-            // Si la altura está mal calculada o la diferencia entre sus hijos es
-            // mayor que 1, la condición será falsa.
-            if ( n->altura != alturacopy || ( abs(alturaIz - alturaDr)  > 1 ) ) {
-                equi = false;
-            }
-            else {
-                equi = true;
-            }
+            equi = equiI && equiD && (abs(alturaIz - alturaDr) <= 1) && ( n->altura == altura );
         }
         
-        return true;
+        return equi;
     }
+    
+    
+//    static bool AVLcorrecto(Nodo* n, int& altura, bool& equi) {
+//        
+//        int alturaIz, alturaDr, alturacopy;
+//        alturaIz = alturaDr = alturacopy = altura;
+//        
+//        if ( n == NULL ) {
+//            
+//            return false;
+//        }
+//        else {
+//            
+//            bool resI = AVLcorrecto(n->iz, alturaIz, equi);
+//            
+//            bool resD = AVLcorrecto(n->dr, alturaDr, equi);
+//            
+//            if ( resI ) {
+//                alturaIz++;
+//            }
+//            if ( resD ) {
+//                alturaDr++;
+//            }
+//            
+//            if ( alturacopy < alturaIz ) altura = alturacopy = alturaIz;
+//            if ( alturacopy < alturaDr ) altura = alturacopy = alturaDr;
+//            
+//            // Si la altura está mal calculada o la diferencia entre sus hijos es
+//            // mayor que 1, la condición será falsa.
+//            if ( n->altura != alturacopy || ( abs(alturaIz - alturaDr)  > 1 ) ) {
+//                equi = false;
+//            }
+//            else {
+//                equi = true;
+//            }
+//        }
+//        
+//        return true;
+//    }
     
     static Nodo* kesimoelementominimo(Nodo* n, const int kesimo) {
         

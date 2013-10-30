@@ -140,11 +140,15 @@ public:
         return equi;
     }
     
-    const Valor kesimoelementominimo(const int kesimo) {
+    const Clave kesimoelementominimo(const int kesimo) {
         
-        return (kesimoelementominimo(raiz, kesimo))->valor;
+        return (kesimoelementominimo(raiz, kesimo))->clave;
     }
     
+    /**
+     * Método que devuelve una lista con las claves ordenadas que
+     * pertenezcan al rango dado.
+     */
     Lista<Clave> rango(const Clave& k1, const Clave& k2) const {
         
         Lista<Clave> clavesRango;
@@ -159,12 +163,7 @@ public:
         
         assert( k1 < k2 );
         
-        if ( k1 < raiz->clave && k2 < raiz->clave )
-            rango(raiz->iz, k1, k2, clavesRango);
-        else if ( k1 <= raiz->clave && k2 >= raiz->clave )
-            rango(raiz, k1, k2, clavesRango);
-        else if ( k1 > raiz->clave && k2 > raiz->clave )
-            rango(raiz->dr, k1, k2, clavesRango);
+        rango(raiz, k1, k2, clavesRango);
         
         return clavesRango;
     }
@@ -534,12 +533,14 @@ private:
         
         if ( n != NULL ) {
             
-            rango(n->iz, k1, k2, claves);
-            
-            if ( n->clave <= k2) {
-                claves.ponDr(n->clave);
+            if ( n->clave > k1) {
+                rango(n->iz, k1, k2, claves);
             }
             
+            if ( n->clave >= k1 && n->clave <= k2) {
+                claves.ponDr(n->clave);
+            }
+        
             if ( n->clave < k2 ) {
                 rango(n->dr, k1, k2, claves);
             }

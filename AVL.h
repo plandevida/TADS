@@ -160,13 +160,6 @@ public:
 		if (clave == p->clave) {
             p = borraRaiz(p);
             
-//            if ( nivel == 0 ) {
-//                reequilibraIzq(p->dr);
-//            }
-//            else {
-//                reequilibraDer(p);
-//            }
-            
 		} else if (clave < p->clave) {
 			p->iz = borraAux(p->iz, clave, nivel+1);
             p->tam_i--;
@@ -458,52 +451,13 @@ private:
             bool equiI = AVLcorrecto(n->iz, alturaIz);
             bool equiD = AVLcorrecto(n->dr, alturaDr);
             
-            altura = max(alturaIz, alturaDr);
+            altura = max(alturaIz, alturaDr)+1;
             
             equi = equiI && equiD && (abs(alturaIz - alturaDr) <= 1) && ( n->altura == altura );
         }
         
         return equi;
     }
-    
-    
-//    static bool AVLcorrecto(Nodo* n, int& altura, bool& equi) {
-//        
-//        int alturaIz, alturaDr, alturacopy;
-//        alturaIz = alturaDr = alturacopy = altura;
-//        
-//        if ( n == NULL ) {
-//            
-//            return false;
-//        }
-//        else {
-//            
-//            bool resI = AVLcorrecto(n->iz, alturaIz, equi);
-//            
-//            bool resD = AVLcorrecto(n->dr, alturaDr, equi);
-//            
-//            if ( resI ) {
-//                alturaIz++;
-//            }
-//            if ( resD ) {
-//                alturaDr++;
-//            }
-//            
-//            if ( alturacopy < alturaIz ) altura = alturacopy = alturaIz;
-//            if ( alturacopy < alturaDr ) altura = alturacopy = alturaDr;
-//            
-//            // Si la altura está mal calculada o la diferencia entre sus hijos es
-//            // mayor que 1, la condición será falsa.
-//            if ( n->altura != alturacopy || ( abs(alturaIz - alturaDr)  > 1 ) ) {
-//                equi = false;
-//            }
-//            else {
-//                equi = true;
-//            }
-//        }
-//        
-//        return true;
-//    }
     
     static Nodo* kesimoelementominimo(Nodo* n, const int kesimo) {
         

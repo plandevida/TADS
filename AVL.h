@@ -206,9 +206,13 @@ public:
 		// Vamos guardando también el padre (que será null
 		// si el hijo derecho es directamente el elemento
 		// más pequeño).
-		Nodo* padre = NULL;
-		Nodo* aux = p->dr;
+//        Nodo* abuelo = p;
+//		Nodo* padre = (p->dr->iz == NULL) ? NULL : p->dr;
+//		Nodo* aux = p->dr->iz;
+        Nodo* padre = NULL;
+        Nodo* aux = p->dr;
 		while (aux->iz != NULL) {
+//            abuelo = padre;
 			padre = aux;
 			aux = aux->iz;
 		}
@@ -222,6 +226,21 @@ public:
 		if (padre != NULL) {
             
 			padre->iz = aux->dr;
+            
+//            Clave clavepadreantigua = padre->clave;
+            
+            if ( p == padre ) {
+                reequilibraDer(p);
+            }
+            else {
+                
+                reequilibraIzq(padre);
+                
+//                if ( abuelo->iz != NULL && abuelo->iz->clave == clavepadreantigua )
+//                    abuelo->iz = padre;
+//                else if ( abuelo->dr != NULL && abuelo->dr->clave == clavepadreantigua )
+//                    abuelo->dr = padre;
+            }
             
             // Actualiza el número de hijos izquierdos del padre
             // del nodo que sube y su altura.
@@ -337,7 +356,9 @@ private:
         k1->dr = k2;
         k2->altura = max(altura(k2->iz),altura(k2->dr))+1;
         k1->altura = max(altura(k1->iz),altura(k1->dr))+1;
-        k2 = k1;
+//        k2 = k1;
+        
+        copiaNodo(k2, k1);
     }
     
     static void rotaIzq(Nodo*& k1){
@@ -350,7 +371,18 @@ private:
         
         k1->altura = max(altura(k1->iz),altura(k1->dr))+1;
         k2->altura = max(altura(k2->iz),altura(k2->dr))+1;
-        k1=k2;
+//        k1=k2;
+        
+        copiaNodo(k1, k2);
+    }
+    
+    static void copiaNodo(Nodo*& destino, Nodo*& origen) {
+        destino->clave = origen->clave;
+        destino->valor = origen->valor;
+        destino->iz = origen->iz;
+        destino->dr = origen->dr;
+        destino->tam_i = origen->tam_i;
+        destino->altura = origen->altura;
     }
     
     static void rotaIzqDer(Nodo*& k3){

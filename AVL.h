@@ -167,7 +167,6 @@ public:
             reequilibraIzq(p);
 		} else { // clave > p->_clave
 			p->dr = borraAux(p->dr, clave, nivel+1);
-            p->tam_i--;
             
             reequilibraDer(p);
 		}
@@ -205,47 +204,46 @@ public:
 		// más pequeÒo (aquel que no tiene hijo izquierdo).
 		// Vamos guardando también el padre (que será null
 		// si el hijo derecho es directamente el elemento
-		// más pequeño).
-//        Nodo* abuelo = p;
-//		Nodo* padre = (p->dr->iz == NULL) ? NULL : p->dr;
-//		Nodo* aux = p->dr->iz;
+		// más pequeño) ye l abuelo para poder reasignar
+        // el padre en caso de rotación.
+        Nodo* abuelo = NULL;
         Nodo* padre = NULL;
         Nodo* aux = p->dr;
 		while (aux->iz != NULL) {
-//            abuelo = padre;
+            abuelo = padre;
 			padre = aux;
 			aux = aux->iz;
 		}
         
+        // Si el abuelo es NULO y el padre no, significa que
+        // solo se ha descendido dos niveles y el abuelo es el
+        // nodo a borrar (p)
+        if ( abuelo == NULL && padre != NULL ) abuelo = p;
+        
 		// aux apunta al elemento más pequeño.
 		// padre apunta a su padre (si el nodo es hijo izquierdo)
         
-		// Dos casos dependiendo de si el padre del nodo con
+		// Dos casos dependiendo de si el padre del 6nodo con
 		// el mínimo es o no la raÌz a eliminar
 		// (=> padre != NULL)
 		if (padre != NULL) {
             
 			padre->iz = aux->dr;
             
-//            Clave clavepadreantigua = padre->clave;
-            
-            if ( p == padre ) {
-                reequilibraDer(p);
-            }
-            else {
-                
-                reequilibraIzq(padre);
-                
-//                if ( abuelo->iz != NULL && abuelo->iz->clave == clavepadreantigua )
-//                    abuelo->iz = padre;
-//                else if ( abuelo->dr != NULL && abuelo->dr->clave == clavepadreantigua )
-//                    abuelo->dr = padre;
-            }
-            
             // Actualiza el número de hijos izquierdos del padre
-            // del nodo que sube y su altura.
-            padre->tam_i = aux->tam_i;
-            padre->altura = max(altura(padre->iz),altura(padre->dr))+1;
+            // del nodo que sube.
+            padre->tam_i -= aux->tam_i;
+            
+            Clave clavepadreantigua = padre->clave;
+            
+            reequilibraIzq(padre);
+            
+            // Colocames el núevo padre en si abuelo después de
+            // la rotación.
+            if ( abuelo->iz != NULL && abuelo->iz->clave == clavepadreantigua )
+                abuelo->iz = padre;
+            else if ( abuelo->dr != NULL && abuelo->dr->clave == clavepadreantigua )
+                abuelo->dr = padre;
             
 			aux->iz = p->iz;
             
@@ -263,7 +261,8 @@ public:
             // Actualiza el número de hijos izquierdos del nodo
             // que sube y su altura.
             aux->tam_i = p->tam_i;
-            aux->altura = max(altura(aux->iz),altura(aux->dr))+1;
+            
+            reequilibraDer(aux);
 		}
     
 		delete p;
@@ -356,9 +355,7 @@ private:
         k1->dr = k2;
         k2->altura = max(altura(k2->iz),altura(k2->dr))+1;
         k1->altura = max(altura(k1->iz),altura(k1->dr))+1;
-//        k2 = k1;
-        
-        copiaNodo(k2, k1);
+        k2 = k1;
     }
     
     static void rotaIzq(Nodo*& k1){
@@ -371,18 +368,7 @@ private:
         
         k1->altura = max(altura(k1->iz),altura(k1->dr))+1;
         k2->altura = max(altura(k2->iz),altura(k2->dr))+1;
-//        k1=k2;
-        
-        copiaNodo(k1, k2);
-    }
-    
-    static void copiaNodo(Nodo*& destino, Nodo*& origen) {
-        destino->clave = origen->clave;
-        destino->valor = origen->valor;
-        destino->iz = origen->iz;
-        destino->dr = origen->dr;
-        destino->tam_i = origen->tam_i;
-        destino->altura = origen->altura;
+        k1=k2;
     }
     
     static void rotaIzqDer(Nodo*& k3){

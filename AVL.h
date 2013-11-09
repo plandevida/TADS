@@ -153,7 +153,8 @@ public:
 	 Operación que borra un elemento del árbol
 	 */
 	void borra(const Clave& clave) {
-		raiz = borraAux(raiz, clave);
+        bool borrado = false;
+		raiz = borraAux(raiz, clave, borrado);
 	}
     
 protected:
@@ -408,21 +409,24 @@ private:
         }
     }
     
-    static Nodo* borraAux(Nodo* p, const Clave &clave) {
+    static Nodo* borraAux(Nodo* p, const Clave &clave, bool& borrado) {
         
 		if (p == NULL)
+            borrado = false;
 			return NULL;
         
 		if (clave == p->clave) {
             p = borraRaiz(p);
+            borrado = true;
             
 		} else if (clave < p->clave) {
-			p->iz = borraAux(p->iz, clave);
-            p->tam_i--;
+			p->iz = borraAux(p->iz, clave, borrado);
+            
+            if ( borrado ) p->tam_i--;
             
             reequilibraIzq(p);
 		} else { // clave > p->_clave
-			p->dr = borraAux(p->dr, clave);
+			p->dr = borraAux(p->dr, clave, borrado);
             
             reequilibraDer(p);
 		}
@@ -494,12 +498,14 @@ private:
             
             reequilibraIzq(padre);
             
-            // Colocames el núevo padre en si abuelo después de
+            // Colocames el núevo padre en su abuelo después de
             // la rotación.
             if ( abuelo->iz != NULL && abuelo->iz->clave == clavepadreantigua )
                 abuelo->iz = padre;
             else if ( abuelo->dr != NULL && abuelo->dr->clave == clavepadreantigua )
                 abuelo->dr = padre;
+            
+            abuelo->altura = max(altura(abuelo->iz),altura(abuelo->dr))+1;
             
 			aux->iz = p->iz;
             

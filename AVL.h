@@ -114,7 +114,11 @@ public:
     bool esAVLcorrecto() {
         int altura;
         
-        return AVLcorrecto(raiz, altura);
+        bool correcto = AVLcorrecto(raiz, altura);
+        
+        assert(correcto);
+        
+        return correcto;
     }
     
     const Clave kesimoelementominimo(const int kesimo) {
@@ -150,123 +154,6 @@ public:
 	 */
 	void borra(const Clave& clave) {
 		raiz = borraAux(raiz, clave, 0);
-	}
-    
-    Nodo* borraAux(Nodo* p, const Clave &clave, int nivel) {
-        
-		if (p == NULL)
-			return NULL;
-        
-		if (clave == p->clave) {
-            p = borraRaiz(p);
-            
-		} else if (clave < p->clave) {
-			p->iz = borraAux(p->iz, clave, nivel+1);
-            p->tam_i--;
-            
-            reequilibraIzq(p);
-		} else { // clave > p->_clave
-			p->dr = borraAux(p->dr, clave, nivel+1);
-            
-            reequilibraDer(p);
-		}
-        
-        return p;
-	}
-    
-    Nodo* borraRaiz(Nodo *p) {
-        
-		Nodo* aux;
-        
-		// Si no hay hijo izquierdo, la raíz pasa a ser
-		// el hijo derecho
-		if (p->iz == NULL) {
-			aux = p->dr;
-			delete p;
-		} else
-            // Si no hay hijo derecho, la raíz pasa a ser
-            // el hijo izquierdo
-            if (p->dr == NULL) {
-                aux = p->iz;
-                delete p;
-            } else {
-                // Convertimos el elemento más pequeño del hijo derecho
-                // en la raíz.
-                aux = mueveMinYBorra(p);
-            }
-        
-        return aux;
-	}
-    
-    Nodo* mueveMinYBorra(Nodo *p) {
-    
-		// Vamos bajando hasta que encontramos el elemento
-		// más pequeÒo (aquel que no tiene hijo izquierdo).
-		// Vamos guardando también el padre (que será null
-		// si el hijo derecho es directamente el elemento
-		// más pequeño) ye l abuelo para poder reasignar
-        // el padre en caso de rotación.
-        Nodo* abuelo = NULL;
-        Nodo* padre = NULL;
-        Nodo* aux = p->dr;
-		while (aux->iz != NULL) {
-            abuelo = padre;
-			padre = aux;
-			aux = aux->iz;
-		}
-        
-        // Si el abuelo es NULO y el padre no, significa que
-        // solo se ha descendido dos niveles y el abuelo es el
-        // nodo a borrar (p)
-        if ( abuelo == NULL && padre != NULL ) abuelo = p;
-        
-		// aux apunta al elemento más pequeño.
-		// padre apunta a su padre (si el nodo es hijo izquierdo)
-        
-		// Dos casos dependiendo de si el padre del 6nodo con
-		// el mínimo es o no la raÌz a eliminar
-		// (=> padre != NULL)
-		if (padre != NULL) {
-            
-			padre->iz = aux->dr;
-            
-            // Actualiza el número de hijos izquierdos del padre
-            // del nodo que sube.
-            padre->tam_i -= aux->tam_i;
-            
-            Clave clavepadreantigua = padre->clave;
-            
-            reequilibraIzq(padre);
-            
-            // Colocames el núevo padre en si abuelo después de
-            // la rotación.
-            if ( abuelo->iz != NULL && abuelo->iz->clave == clavepadreantigua )
-                abuelo->iz = padre;
-            else if ( abuelo->dr != NULL && abuelo->dr->clave == clavepadreantigua )
-                abuelo->dr = padre;
-            
-			aux->iz = p->iz;
-            
-			aux->dr = p->dr;
-            
-            // Actualiza el número de hijos izquierdos del nodo
-            // que sube y su altura.
-            aux->tam_i = p->tam_i;
-            aux->altura = max(altura(aux->iz),altura(aux->dr))+1;
-            
-		} else {
-            
-			aux->iz = p->iz;
-            
-            // Actualiza el número de hijos izquierdos del nodo
-            // que sube y su altura.
-            aux->tam_i = p->tam_i;
-            
-            reequilibraDer(aux);
-		}
-    
-		delete p;
-		return aux;
 	}
     
 protected:
@@ -457,6 +344,7 @@ private:
     static bool AVLcorrecto(Nodo* n, int& altura) {
         
         bool equi;
+        int alturacopy = altura;
         
         if ( n == NULL ) {
             altura = 0;
@@ -469,9 +357,9 @@ private:
             bool equiI = AVLcorrecto(n->iz, alturaIz);
             bool equiD = AVLcorrecto(n->dr, alturaDr);
             
-            altura = max(alturaIz, alturaDr)+1;
+            altura = alturacopy = max(alturaIz, alturaDr)+1;
             
-            equi = equiI && equiD && (abs(alturaIz - alturaDr) <= 1) && ( n->altura == altura );
+            equi = equiI && equiD && (abs(alturaIz - alturaDr) <= 1) && ( n->altura == alturacopy );
         }
         
         return equi;
@@ -519,6 +407,123 @@ private:
             }
         }
     }
+    
+    static Nodo* borraAux(Nodo* p, const Clave &clave) {
+        
+		if (p == NULL)
+			return NULL;
+        
+		if (clave == p->clave) {
+            p = borraRaiz(p);
+            
+		} else if (clave < p->clave) {
+			p->iz = borraAux(p->iz, clave);
+            p->tam_i--;
+            
+            reequilibraIzq(p);
+		} else { // clave > p->_clave
+			p->dr = borraAux(p->dr, clave);
+            
+            reequilibraDer(p);
+		}
+        
+        return p;
+	}
+    
+    static Nodo* borraRaiz(Nodo *p) {
+        
+		Nodo* aux;
+        
+		// Si no hay hijo izquierdo, la raíz pasa a ser
+		// el hijo derecho
+		if (p->iz == NULL) {
+			aux = p->dr;
+			delete p;
+		} else
+            // Si no hay hijo derecho, la raíz pasa a ser
+            // el hijo izquierdo
+            if (p->dr == NULL) {
+                aux = p->iz;
+                delete p;
+            } else {
+                // Convertimos el elemento más pequeño del hijo derecho
+                // en la raíz.
+                aux = mueveMinYBorra(p);
+            }
+        
+        return aux;
+	}
+    
+    static Nodo* mueveMinYBorra(Nodo *p) {
+        
+		// Vamos bajando hasta que encontramos el elemento
+		// más pequeÒo (aquel que no tiene hijo izquierdo).
+		// Vamos guardando también el padre (que será null
+		// si el hijo derecho es directamente el elemento
+		// más pequeño) ye l abuelo para poder reasignar
+        // el padre en caso de rotación.
+        Nodo* abuelo = NULL;
+        Nodo* padre = NULL;
+        Nodo* aux = p->dr;
+		while (aux->iz != NULL) {
+            abuelo = padre;
+			padre = aux;
+			aux = aux->iz;
+		}
+        
+        // Si el abuelo es NULO y el padre no, significa que
+        // solo se ha descendido dos niveles y el abuelo es el
+        // nodo a borrar (p)
+        if ( abuelo == NULL && padre != NULL ) abuelo = p;
+        
+		// aux apunta al elemento más pequeño.
+		// padre apunta a su padre (si el nodo es hijo izquierdo)
+        
+		// Dos casos dependiendo de si el padre del 6nodo con
+		// el mínimo es o no la raÌz a eliminar
+		// (=> padre != NULL)
+		if (padre != NULL) {
+            
+			padre->iz = aux->dr;
+            
+            // Actualiza el número de hijos izquierdos del padre
+            // del nodo que sube.
+            padre->tam_i -= aux->tam_i;
+            
+            Clave clavepadreantigua = padre->clave;
+            
+            reequilibraIzq(padre);
+            
+            // Colocames el núevo padre en si abuelo después de
+            // la rotación.
+            if ( abuelo->iz != NULL && abuelo->iz->clave == clavepadreantigua )
+                abuelo->iz = padre;
+            else if ( abuelo->dr != NULL && abuelo->dr->clave == clavepadreantigua )
+                abuelo->dr = padre;
+            
+			aux->iz = p->iz;
+            
+			aux->dr = p->dr;
+            
+            // Actualiza el número de hijos izquierdos del nodo
+            // que sube y su altura.
+            aux->tam_i = p->tam_i;
+            aux->altura = max(altura(aux->iz),altura(aux->dr))+1;
+            
+		} else {
+            
+			aux->iz = p->iz;
+            
+            // Actualiza el número de hijos izquierdos del nodo
+            // que sube y su altura.
+            aux->tam_i = p->tam_i;
+            
+            reequilibraDer(aux);
+		}
+        
+		delete p;
+		return aux;
+	}
 };
 
 template <class Clave, class Valor>

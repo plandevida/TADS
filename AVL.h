@@ -114,11 +114,7 @@ public:
     bool esAVLcorrecto() {
         int altura;
         
-        bool correcto = AVLcorrecto(raiz, altura);
-        
-        assert(correcto);
-        
-        return correcto;
+        return AVLcorrecto(raiz, altura);
     }
     
     const Clave kesimoelementominimo(const int kesimo) {
@@ -153,8 +149,11 @@ public:
 	 Operación que borra un elemento del árbol
 	 */
 	void borra(const Clave& clave) {
-        bool borrado = false;
+        bool borrado;
+        
 		raiz = borraAux(raiz, clave, borrado);
+        
+        assert( esAVLcorrecto(raiz) );
 	}
     
 protected:
@@ -411,9 +410,10 @@ private:
     
     static Nodo* borraAux(Nodo* p, const Clave &clave, bool& borrado) {
         
-		if (p == NULL)
+		if (p == NULL) {
             borrado = false;
 			return NULL;
+        }
         
 		if (clave == p->clave) {
             p = borraRaiz(p);
@@ -505,7 +505,7 @@ private:
             else if ( abuelo->dr != NULL && abuelo->dr->clave == clavepadreantigua )
                 abuelo->dr = padre;
             
-            abuelo->altura = max(altura(abuelo->iz),altura(abuelo->dr))+1;
+            reequilibraIzq(abuelo);
             
 			aux->iz = p->iz;
             
@@ -514,7 +514,7 @@ private:
             // Actualiza el número de hijos izquierdos del nodo
             // que sube y su altura.
             aux->tam_i = p->tam_i;
-            aux->altura = max(altura(aux->iz),altura(aux->dr))+1;
+            reequilibraDer(aux);
             
 		} else {
             

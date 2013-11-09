@@ -153,7 +153,7 @@ public:
 	 Operación que borra un elemento del árbol
 	 */
 	void borra(const Clave& clave) {
-		raiz = borraAux(raiz, clave, 0);
+		raiz = borraAux(raiz, clave);
 	}
     
 protected:
@@ -488,7 +488,7 @@ private:
             
             // Actualiza el número de hijos izquierdos del padre
             // del nodo que sube.
-            padre->tam_i -= aux->tam_i;
+            padre->tam_i += (aux->dr != NULL) ? (aux->tam_i - aux->dr->tam_i) : (aux->tam_i * -1);
             
             Clave clavepadreantigua = padre->clave;
             
